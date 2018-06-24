@@ -87,8 +87,8 @@ set (SERVER_SRC
     )
 
 set (HELP_SRC
-    help_variables.c
-    help_commands.c
+    ${CMAKE_CURRENT_BINARY_DIR}/help_variables.c
+    ${CMAKE_CURRENT_BINARY_DIR}/help_commands.c
     )
 
 set (CLIENT_SRC
@@ -242,7 +242,12 @@ set (WINDOWS_SRC
 	movie_avi.c
 	sys_win.c
 	)
-	
+
+set (JSON_SRC
+  help_variables.json
+  help_commands.json)
+
+
 ## Macros
 
 add_definitions(-DNDEBUG)
@@ -259,6 +264,23 @@ add_definitions(-DWITH_ZLIB)
 
 ## LIBRARIES
 set (EZQUAKE_LIBS)
+
+
+
+## Code generation
+foreach(json ${JSON_SRC})
+  string(REGEX REPLACE "\\.json$" ".c" JSON_OUTPUT_C ${json})
+  add_custom_command(
+    COMMAND sh ${CMAKE_CURRENT_SOURCE_DIR}/json2c.sh ${CMAKE_CURRENT_SOURCE_DIR}/${json} ${CMAKE_CURRENT_BINARY_DIR}/${JSON_OUTPUT_C}
+    DEPENDS help_variables.json 
+    OUTPUT ${JSON_OUTPUT_C} 
+    COMMENT "Generating code for ${json}"
+    )
+endforeach()
+
+# Add current source directiory to include directory
+# list, for out-of-tree builds
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 if (WIN32)
 	# We're linking static libs
